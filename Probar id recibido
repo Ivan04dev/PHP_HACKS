@@ -1,0 +1,152 @@
+# inicio_.php
+
+if ($usuario == 'ivdelgadoga') {
+			# BOTÓN ELIMINAR
+			echo '<a href="#" 
+					class="btn btn-medium btn-danger btnEliminarComunicado" 
+					data-id="'.$comunicado[$c]['IDLECTURA'].'">';
+			echo '<span class="text"> Eliminar </span>';
+			echo '<i class="seoicon-right-arrow"></i>';
+			echo '</a>';
+
+			echo '<a href="reporte_comunicados_tablero.php" class="btn btn-medium btn-border c-primary" target="_blank">"';
+			echo '<span class="text">Reporte lectura Tablero</span>';
+			echo '<i class="seoicon-line-graph"></i>';
+			echo '</a>';
+}
+
+# inicio_.js
+
+// Eliminar comunicado
+$(document).on("click", ".btnEliminarComunicado", function (e) {
+  e.preventDefault();
+
+  let idComunicado = $(this).data("id");
+
+  $.ajax({
+    url: "_eliminar_comunicado.php",
+    type: "POST",
+    dataType: "json",
+    data: {
+      idComunicado: idComunicado,
+    },
+
+    success: function (comunicado) {
+        console.log(comunicado);
+
+      if (comunicado.error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No fue posible localizar el comunicado.",
+        });
+
+        return;
+      }
+
+      Swal.fire({
+        title: "¿Eliminar comunicado?",
+        html: 
+            '<b>Título:</b><br>' +
+            comunicado.data.TITULO +
+            '<br><br>' +
+            'Esta acción no se puede deshacer.',
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#D33",
+      }).then((result) => {
+
+        if (result.isConfirmed) {
+
+          $.ajax({
+            url: "_eliminar_comunicado.php",
+            type: "POST",
+            data: {
+              idComunicado: idComunicado,
+            },
+
+            success: function (response) {
+
+              if (response.trim() == "OK") {
+
+                Swal.fire({
+                  icon: "success",
+                  title: "Comunicado eliminado",
+                  timer: 1500,
+                  showConfirmButton: false,
+                }).then(() => {
+
+                  location.reload();
+
+                });
+
+              } else {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response
+                });
+
+              }
+            },
+
+            error: function () {
+
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un problema al eliminar el comunicado.'
+              });
+
+            },
+
+          });
+
+        }
+
+      });
+
+    },
+
+    error: function(xhr, status, error){
+
+        console.log('xhr:', xhr.responseText);
+        console.log('status:', status);
+        console.log('error:', error);
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            html: 
+                '<b>Status:</b> ' + status +
+                '<br><b>Error:</b>' + error
+        });
+    }
+
+  });
+
+});
+
+# fin_.php
+
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+header('Content-Type: application/json');
+
+$idComunicado = $_POST['idComunicado'] ?? null;
+
+# DEBUG
+echo json_encode([
+    "status" => "ok",
+    "data" => [
+        "ID" => $idComunicado,
+        "TITULO" => "Comunicado de prueba Lunes"
+    ]
+]);
+
+exit;
