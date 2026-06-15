@@ -1,0 +1,39 @@
+<?php
+
+header('Content-Type: application/json');
+
+include("../../server/BD/_config/conexionBD.php");
+
+$idComunicado = $_POST['idComunicado'] ?? null;
+
+if(!$idComunicado){
+    echo json_encode([
+        "status" => "error",
+        "message" => "ID no recibido"
+    ]);
+}
+
+$conexion = new conexionBD();
+$con = $conexion->conectar();
+
+$sql = "SELECT ID, TITULO, FECHACREADO FROM ATC_LECTURA WHERE ID = :id";
+
+$stmt = oci_parse($con, $sql);
+
+oci_bind_by_name($stmt, ":id", $idComunicado);
+
+oci_execute($stmt);
+
+$comunicado = oci_fetch_assoc($stmt);
+
+oci_free_statement($stmt);
+
+$conexion->cerrarConexion();
+
+// Respuesta
+echo json_encode([
+    "status" => "ok",
+    "data" => $comunicado
+]);
+
+exit;
